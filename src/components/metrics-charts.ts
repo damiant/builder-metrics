@@ -48,6 +48,7 @@ export class MetricsCharts extends LitElement {
     company: { attribute: false },
     selectedMonth: { type: Number, attribute: false },
     selectedYear: { type: Number, attribute: false },
+    showEmails: { type: Boolean, attribute: false },
     usersData: { attribute: false },
     modelMetrics: { attribute: false },
     projectMetrics: { attribute: false },
@@ -69,6 +70,7 @@ export class MetricsCharts extends LitElement {
   declare company: CompanyConfig | null;
   declare selectedMonth: number;
   declare selectedYear: number;
+  declare showEmails: boolean;
   declare usersData: Array<any> | null;
   declare refreshTrigger: number;
   declare modelMetrics: Array<{
@@ -157,6 +159,7 @@ export class MetricsCharts extends LitElement {
     this.company = null;
     this.selectedMonth = new Date().getMonth();
     this.selectedYear = new Date().getFullYear();
+    this.showEmails = true;
     this.usersData = null;
     this.modelMetrics = null;
     this.projectMetrics = null;
@@ -750,7 +753,9 @@ export class MetricsCharts extends LitElement {
                     >
                   </td>
                   <td class="px-4 py-3">
-                    <span class="block text-[var(--color-text-primary)]">${session.userEmail}</span>
+                    <span class="block text-[var(--color-text-primary)]"
+                      >${this.showEmails ? session.userEmail : "User"}</span
+                    >
                     <span class="block text-xs text-[var(--color-text-tertiary)]"
                       >${session.projectName}</span
                     >
@@ -1394,7 +1399,7 @@ export class MetricsCharts extends LitElement {
                                       }),
                                     )}
                                 >
-                                  ${user.userEmail}
+                                  ${this.showEmails ? user.userEmail : "User"}
                                 </button>
                               </td>
                               <td class="px-4 py-3 text-right text-[var(--color-text-secondary)]">
@@ -1550,7 +1555,7 @@ export class MetricsCharts extends LitElement {
                                     class="border-b border-[var(--color-border-subtle)] hover:bg-[var(--color-surface-elevated)]"
                                   >
                                     <td class="px-4 py-3 text-[var(--color-text-primary)]">
-                                      ${record.userEmail}
+                                      ${this.showEmails ? record.userEmail : "User"}
                                     </td>
                                     <td
                                       class="px-4 py-3 text-left text-[var(--color-text-secondary)]"
@@ -1801,7 +1806,7 @@ export class MetricsCharts extends LitElement {
                                           ${record.eventType}
                                         </td>
                                         <td class="px-4 py-3 text-[var(--color-text-secondary)]">
-                                          ${record.userEmail}
+                                          ${this.showEmails ? record.userEmail : "User"}
                                         </td>
                                         <td class="px-4 py-3 text-[var(--color-text-primary)]">
                                           ${record.projectUrl
@@ -1865,7 +1870,7 @@ export class MetricsCharts extends LitElement {
                       >
                         <div class="border-b border-[var(--color-border-subtle)] px-4 pb-3">
                           <h4 class="text-base font-semibold text-[var(--color-text-primary)]">
-                            ${user.userEmail}
+                            ${this.showEmails ? user.userEmail : "User"}
                           </h4>
                         </div>
                         <div class="overflow-x-auto">

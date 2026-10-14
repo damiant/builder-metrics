@@ -11,6 +11,7 @@ export class CompanyHeader extends LitElement {
     isExportingCsv: { type: Boolean, attribute: false },
     isExportingHtml: { type: Boolean, attribute: false },
     menuOpen: { type: Boolean, attribute: false },
+    showEmails: { type: Boolean, attribute: false },
   };
 
   declare companies: CompanyConfig[];
@@ -20,6 +21,7 @@ export class CompanyHeader extends LitElement {
   declare isExportingCsv: boolean;
   declare isExportingHtml: boolean;
   declare menuOpen: boolean;
+  declare showEmails: boolean;
 
   constructor() {
     super();
@@ -30,6 +32,7 @@ export class CompanyHeader extends LitElement {
     this.isExportingCsv = false;
     this.isExportingHtml = false;
     this.menuOpen = false;
+    this.showEmails = true;
   }
 
   createRenderRoot() {
@@ -75,6 +78,17 @@ export class CompanyHeader extends LitElement {
   private handleEditCompany = () => {
     this.menuOpen = false;
     this.dispatchEvent(new CustomEvent("edit-company", { bubbles: true, composed: true }));
+  };
+
+  private handleShowEmailsChange = (event: Event) => {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.dispatchEvent(
+      new CustomEvent<{ showEmails: boolean }>("show-emails-change", {
+        detail: { showEmails: checked },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   };
 
   private handleRefresh = () => {
@@ -265,6 +279,18 @@ export class CompanyHeader extends LitElement {
                       >
                         ${this.isExportingHtml ? "Generating HTML..." : "HTML"}
                       </button>
+                      <label
+                        class="flex w-full cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm font-medium text-[var(--color-text-primary)] transition hover:bg-[var(--color-surface-muted)]"
+                        role="menuitemcheckbox"
+                        aria-checked=${this.showEmails ? "true" : "false"}
+                      >
+                        <input
+                          type="checkbox"
+                          .checked=${this.showEmails}
+                          @change=${this.handleShowEmailsChange}
+                        />
+                        Show Emails
+                      </label>
                       <button
                         type="button"
                         class="w-full rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm font-medium text-[var(--color-text-primary)] transition hover:bg-[var(--color-surface-muted)]"

@@ -12,6 +12,7 @@ export class CompanySummary extends LitElement {
     metricsError: { attribute: false },
     selectedMonth: { type: Number, attribute: false },
     selectedYear: { type: Number, attribute: false },
+    showEmails: { type: Boolean, attribute: false },
     spaces: { attribute: false },
     selectedSpaceId: { attribute: false },
     modelMetrics: { attribute: false },
@@ -35,6 +36,7 @@ export class CompanySummary extends LitElement {
   declare metricsError: string | null;
   declare selectedMonth: number;
   declare selectedYear: number;
+  declare showEmails: boolean;
   declare spaces: Array<{ id: string; name: string }>;
   declare selectedSpaceId: string;
   declare modelMetrics: Array<{
@@ -123,6 +125,7 @@ export class CompanySummary extends LitElement {
     this.userSessionData = null;
     this.showSessions = false;
     this.selectedUserEmail = "";
+    this.showEmails = true;
     this.projectsApiData = null;
   }
 
@@ -199,7 +202,7 @@ export class CompanySummary extends LitElement {
               ← Back
             </button>
             <h2 class="text-2xl font-semibold tracking-tight text-[var(--color-text-primary)]">
-              ${this.selectedUserEmail}
+              ${this.showEmails ? this.selectedUserEmail : "User"}
             </h2>
           </div>
 
@@ -355,6 +358,7 @@ export class CompanySummary extends LitElement {
               .selectedYear=${this.selectedYear}
               .sessionTableData=${this.sessionTableData}
               .userSessionData=${this.userSessionData}
+              .showEmails=${this.showEmails}
               .view=${"sessions"}
               @user-selected=${this.handleUserSelected}
             ></metrics-charts>
@@ -401,6 +405,7 @@ export class CompanySummary extends LitElement {
           ? html`
               <section class="w-full">
                 <metrics-charts
+                  .showEmails=${this.showEmails}
                   .data=${this.metricsData}
                   .selectedSpaceId=${this.selectedSpaceId}
                   .company=${this.company}

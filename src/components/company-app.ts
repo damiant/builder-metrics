@@ -154,6 +154,7 @@ export class CompanyApp extends LitElement {
     metricsError: { attribute: false },
     selectedMonth: { type: Number, attribute: false },
     selectedYear: { type: Number, attribute: false },
+    showEmails: { type: Boolean, attribute: false },
     selectedSpaceId: { attribute: false },
     isFetchingUncachedMetrics: { type: Boolean, attribute: false },
     isFetchingEventPages: { type: Boolean, attribute: false },
@@ -187,6 +188,7 @@ export class CompanyApp extends LitElement {
   declare metricsError: string | null;
   declare selectedMonth: number;
   declare selectedYear: number;
+  declare showEmails: boolean;
   declare selectedSpaceId: string;
   declare isFetchingUncachedMetrics: boolean;
   declare isFetchingEventPages: boolean;
@@ -244,6 +246,7 @@ export class CompanyApp extends LitElement {
     this.userSessionData = null;
     this.projectsApiData = null;
     this.refreshTrigger = 0;
+    this.showEmails = true;
     this.loadDateFromStorage();
   }
 
@@ -2013,6 +2016,10 @@ export class CompanyApp extends LitElement {
           .isExportingPng=${this.isExportingPng}
           .isExportingCsv=${this.isExportingCsv}
           .isExportingHtml=${this.isExportingHtml}
+          .showEmails=${this.showEmails}
+          @show-emails-change=${(e: CustomEvent<{ showEmails: boolean }>) => {
+            this.showEmails = e.detail.showEmails;
+          }}
           @company-change=${this.handleCompanyChange}
           @add-company=${this.addCompany}
           @edit-company=${this.openDialog}
@@ -2028,6 +2035,7 @@ export class CompanyApp extends LitElement {
         <company-summary
           .company=${this.selectedCompany}
           .refreshTrigger=${this.refreshTrigger}
+          .showEmails=${this.showEmails}
           .metricsData=${this.filteredMetricsData}
           .metricsError=${this.metricsError}
           .selectedMonth=${this.selectedMonth}
