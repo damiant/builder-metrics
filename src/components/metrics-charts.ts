@@ -3,6 +3,7 @@ import { Chart, registerables } from "chart.js";
 import type { CompanyConfig } from "../lib/company-store";
 import { buildUsersUrl } from "../lib/company-store";
 import { getCachedUsers, cacheUsers } from "../lib/metrics-cache";
+import { getRangeDays, getRangeStrings, weekStartIso, type RangeMode } from "../lib/date-range";
 
 Chart.register(...registerables);
 
@@ -48,6 +49,7 @@ export class MetricsCharts extends LitElement {
     company: { attribute: false },
     selectedMonth: { type: Number, attribute: false },
     selectedYear: { type: Number, attribute: false },
+    rangeMode: { attribute: false },
     showEmails: { type: Boolean, attribute: false },
     usersData: { attribute: false },
     modelMetrics: { attribute: false },
@@ -70,6 +72,7 @@ export class MetricsCharts extends LitElement {
   declare company: CompanyConfig | null;
   declare selectedMonth: number;
   declare selectedYear: number;
+  declare rangeMode: RangeMode;
   declare showEmails: boolean;
   declare usersData: Array<any> | null;
   declare refreshTrigger: number;
@@ -159,6 +162,7 @@ export class MetricsCharts extends LitElement {
     this.company = null;
     this.selectedMonth = new Date().getMonth();
     this.selectedYear = new Date().getFullYear();
+    this.rangeMode = "month";
     this.showEmails = true;
     this.usersData = null;
     this.modelMetrics = null;
@@ -192,6 +196,7 @@ export class MetricsCharts extends LitElement {
       changedProperties.has("company") ||
       changedProperties.has("selectedMonth") ||
       changedProperties.has("selectedYear") ||
+      changedProperties.has("rangeMode") ||
       changedProperties.has("refreshTrigger");
 
     const sessionMetricsChanged = changedProperties.has("sessionMetrics");
@@ -281,9 +286,16 @@ export class MetricsCharts extends LitElement {
     const existingChart = this.charts.get("sessions");
     if (existingChart) existingChart.destroy();
 
-    const dates = this.data.map((d) => d.period);
-    const formattedDates = dates.map((d) => this.formatDateLabel(d));
-    const values = dates.map((d) => this.sessionMetrics?.get(d) ?? 0);
+    const weekly = this.isWeekly();
+    const periods = this.data.map((d) => d.period);
+    const sessionByPeriod = new Map<string, number>(
+      periods.map((p) => [p, this.sessionMetrics?.get(p) ?? 0]),
+    );
+    const { labels: formattedDates, values } = this.bucketSeries(
+      periods,
+      periods.map((p) => sessionByPeriod.get(p) ?? 0),
+      weekly,
+    );
 
     const chart = new Chart(canvas, {
       type: "bar",
@@ -382,28 +394,31 @@ export class MetricsCharts extends LitElement {
   }
 
   private getDateRange() {
-    const startDate = new Date(this.selectedYear, this.selectedMonth, 1);
-    const endDate = new Date(this.selectedYear, this.selectedMonth + 1, 0);
-
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    };
-
-    return {
-      startDate: formatDate(startDate),
-      endDate: formatDate(endDate),
-    };
+    return getRangeStrings(this.rangeMode, this.selectedMonth, this.selectedYear);
   }
 
   private getDaysInSelectedMonth(): number {
-    const startDate = new Date(this.selectedYear, this.selectedMonth, 1);
-    const endDate = new Date(this.selectedYear, this.selectedMonth + 1, 0);
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end dates
-    return diffDays;
+    return getRangeDays(this.rangeMode, this.selectedMonth, this.selectedYear);
+  }
+
+  private isWeekly(): boolean {
+    return getRangeDays(this.rangeMode, this.selectedMonth, this.selectedYear) > 31;
+  }
+
+  private bucketSeries(periods: string[], values: number[], weekly: boolean) {
+    if (!weekly) {
+      return { labels: periods.map((p) => this.formatDateLabel(p)), values };
+    }
+    const buckets = new Map<string, number>();
+    periods.forEach((p, i) => {
+      const key = weekStartIso(p.slice(0, 10));
+      buckets.set(key, (buckets.get(key) ?? 0) + (Number(values[i]) || 0));
+    });
+    const keys = [...buckets.keys()].sort();
+    return {
+      labels: keys.map((k) => `Wk ${this.formatDateLabel(k)}`),
+      values: keys.map((k) => buckets.get(k) ?? 0),
+    };
   }
 
   private getSpaceMetrics(): Array<{
@@ -617,9 +632,11 @@ export class MetricsCharts extends LitElement {
       existingChart.destroy();
     }
 
-    const dates = this.data!.map((d) => d.period);
-    const formattedDates = dates.map((d) => this.formatDateLabel(d));
-    const values = this.data!.map((d) => d.metrics[config.dataKey]);
+    const { labels: formattedDates, values } = this.bucketSeries(
+      this.data!.map((d) => d.period),
+      this.data!.map((d) => Number(d.metrics[config.dataKey]) || 0),
+      this.isWeekly(),
+    );
 
     const chart = new Chart(canvas, {
       type: "bar",

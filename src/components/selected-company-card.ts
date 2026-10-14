@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import type { CompanyConfig } from "../lib/company-store";
 import "./date-range-selector";
 import "./space-selector";
+import { describeRange, type RangeMode } from "../lib/date-range";
 
 type MetricsItem = {
   userPrompts: number;
@@ -28,6 +29,7 @@ export class SelectedCompanyCard extends LitElement {
     metricsData: { attribute: false },
     selectedMonth: { type: Number, attribute: false },
     selectedYear: { type: Number, attribute: false },
+    rangeMode: { attribute: false },
     spaces: { attribute: false },
     selectedSpaceId: { attribute: false },
   };
@@ -36,6 +38,7 @@ export class SelectedCompanyCard extends LitElement {
   declare metricsData: MetricsData | null;
   declare selectedMonth: number;
   declare selectedYear: number;
+  declare rangeMode: RangeMode;
   declare spaces: Array<{ id: string; name: string }>;
   declare selectedSpaceId: string;
 
@@ -46,6 +49,7 @@ export class SelectedCompanyCard extends LitElement {
     const today = new Date();
     this.selectedMonth = today.getMonth();
     this.selectedYear = today.getFullYear();
+    this.rangeMode = "month";
     this.spaces = [];
     this.selectedSpaceId = "all";
   }
@@ -68,7 +72,9 @@ export class SelectedCompanyCard extends LitElement {
     }
   }
 
-  private handleDateChange = (event: CustomEvent<{ month: number; year: number }>) => {
+  private handleDateChange = (
+    event: CustomEvent<{ month: number; year: number; rangeMode: RangeMode }>,
+  ) => {
     console.log("selected-company-card received date-change event:", event.detail);
     this.dispatchEvent(
       new CustomEvent("date-change", {
@@ -168,11 +174,7 @@ export class SelectedCompanyCard extends LitElement {
                 ${company.name}
               </h2>
               <p class="max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
-                Metrics for
-                ${new Date(this.selectedYear, this.selectedMonth).toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })}
+                Metrics for ${describeRange(this.rangeMode, this.selectedMonth, this.selectedYear)}
               </p>
             </div>
           </div>
@@ -183,6 +185,7 @@ export class SelectedCompanyCard extends LitElement {
                 <date-range-selector
                   .month=${this.selectedMonth}
                   .year=${this.selectedYear}
+                  .rangeMode=${this.rangeMode}
                 ></date-range-selector>
               </div>
               ${this.spaces.length > 0
