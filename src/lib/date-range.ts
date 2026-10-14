@@ -1,13 +1,12 @@
-export type RangeMode = "month" | "quarter" | "year365";
+export type RangeMode = "month" | "days90";
 
 export const RANGE_MODES: Array<{ value: RangeMode; label: string }> = [
   { value: "month", label: "By Month" },
-  { value: "quarter", label: "By Quarter" },
-  { value: "year365", label: "365 days" },
+  { value: "days90", label: "90 Days" },
 ];
 
 export function isRangeMode(value: unknown): value is RangeMode {
-  return value === "month" || value === "quarter" || value === "year365";
+  return value === "month" || value === "days90";
 }
 
 export function formatIsoDate(date: Date): string {
@@ -18,16 +17,15 @@ export function formatIsoDate(date: Date): string {
 }
 
 export function computeRange(mode: RangeMode, month: number, year: number) {
-  if (mode === "year365") {
+  if (mode === "days90") {
     const end = new Date();
     end.setHours(0, 0, 0, 0);
     const start = new Date(end);
-    start.setDate(start.getDate() - 365);
+    start.setDate(start.getDate() - 89);
     return { start, end };
   }
-  const monthsBack = mode === "quarter" ? 2 : 0;
   return {
-    start: new Date(year, month - monthsBack, 1),
+    start: new Date(year, month, 1),
     end: new Date(year, month + 1, 0),
   };
 }

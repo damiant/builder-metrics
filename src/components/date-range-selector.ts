@@ -84,14 +84,12 @@ export class DateRangeSelector extends LitElement {
           </select>
         </div>
 
-        ${this.rangeMode === "year365"
+        ${this.rangeMode === "days90"
           ? ""
           : html`
               <div class="flex gap-4">
                 <div class="flex flex-col gap-2">
-                  <label for="month-select" class=${labelClass}>
-                    ${this.rangeMode === "quarter" ? "Ending month" : "Month"}
-                  </label>
+                  <label for="month-select" class=${labelClass}> Month </label>
                   <select id="month-select" @change=${this.handleMonthChange} class=${selectClass}>
                     ${months.map(
                       (name, index) => html`
