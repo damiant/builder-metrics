@@ -300,8 +300,33 @@ export class CompanyApp extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
+    window.addEventListener("beforeprint", this.handleBeforePrint);
+    window.addEventListener("afterprint", this.handleAfterPrint);
     void this.initializeApp();
   }
+
+  override disconnectedCallback() {
+    window.removeEventListener("beforeprint", this.handleBeforePrint);
+    window.removeEventListener("afterprint", this.handleAfterPrint);
+    super.disconnectedCallback();
+  }
+
+  private originalTitle: string | null = null;
+
+  private handleBeforePrint = () => {
+    this.originalTitle = document.title;
+    const monthName = new Date(this.selectedYear, this.selectedMonth).toLocaleDateString("en-US", {
+      month: "long",
+    });
+    document.title = `${this.selectedCompany.name}-${monthName}-${this.selectedYear}`;
+  };
+
+  private handleAfterPrint = () => {
+    if (this.originalTitle !== null) {
+      document.title = this.originalTitle;
+      this.originalTitle = null;
+    }
+  };
 
   private async initializeApp() {
     await this.restoreCompanies();
