@@ -23,6 +23,7 @@ import {
   getCachedProjects,
   clearAllCaches,
 } from "../lib/metrics-cache";
+import { getRangeStrings, isRangeMode, type RangeMode } from "../lib/date-range";
 import "./company-dialog";
 import "./company-header";
 import "./company-summary";
@@ -154,6 +155,7 @@ export class CompanyApp extends LitElement {
     metricsError: { attribute: false },
     selectedMonth: { type: Number, attribute: false },
     selectedYear: { type: Number, attribute: false },
+    rangeMode: { attribute: false },
     showEmails: { type: Boolean, attribute: false },
     selectedSpaceId: { attribute: false },
     isFetchingUncachedMetrics: { type: Boolean, attribute: false },
@@ -188,6 +190,7 @@ export class CompanyApp extends LitElement {
   declare metricsError: string | null;
   declare selectedMonth: number;
   declare selectedYear: number;
+  declare rangeMode: RangeMode;
   declare showEmails: boolean;
   declare selectedSpaceId: string;
   declare isFetchingUncachedMetrics: boolean;
@@ -247,6 +250,7 @@ export class CompanyApp extends LitElement {
     this.projectsApiData = null;
     this.refreshTrigger = 0;
     this.showEmails = true;
+    this.rangeMode = "month";
     this.loadDateFromStorage();
   }
 
@@ -254,6 +258,8 @@ export class CompanyApp extends LitElement {
     try {
       const savedMonth = localStorage.getItem("selectedMonth");
       const savedYear = localStorage.getItem("selectedYear");
+      const savedMode = localStorage.getItem("rangeMode");
+      if (isRangeMode(savedMode)) this.rangeMode = savedMode;
 
       if (savedMonth !== null && savedYear !== null) {
         const month = parseInt(savedMonth, 10);
@@ -288,6 +294,7 @@ export class CompanyApp extends LitElement {
     try {
       localStorage.setItem("selectedMonth", String(this.selectedMonth));
       localStorage.setItem("selectedYear", String(this.selectedYear));
+      localStorage.setItem("rangeMode", this.rangeMode);
       console.log(`Saved date to storage: ${this.selectedMonth}/${this.selectedYear}`);
     } catch (error) {
       console.error("Error saving date to storage:", error);
@@ -405,8 +412,10 @@ export class CompanyApp extends LitElement {
     void this.fetchProjectsData();
   };
 
-  private handleDateChange = (event: CustomEvent<{ month: number; year: number }>) => {
-    console.log("Date changed to:", event.detail.month, event.detail.year);
+  private handleDateChange = (
+    event: CustomEvent<{ month: number; year: number; rangeMode: RangeMode }>,
+  ) => {
+    this.rangeMode = event.detail.rangeMode;
     this.selectedMonth = event.detail.month;
     this.selectedYear = event.detail.year;
     this.saveDateToStorage();
@@ -821,21 +830,7 @@ export class CompanyApp extends LitElement {
   }
 
   private getMetricsDateRange() {
-    // Get the first and last day of the selected month
-    const startDate = new Date(this.selectedYear, this.selectedMonth, 1);
-    const endDate = new Date(this.selectedYear, this.selectedMonth + 1, 0);
-
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    };
-
-    return {
-      startDate: formatDate(startDate),
-      endDate: formatDate(endDate),
-    };
+    return getRangeStrings(this.rangeMode, this.selectedMonth, this.selectedYear);
   }
 
   private normalizeSpaces(dataArray: any[]): any[] {
@@ -2065,6 +2060,7 @@ export class CompanyApp extends LitElement {
           .metricsError=${this.metricsError}
           .selectedMonth=${this.selectedMonth}
           .selectedYear=${this.selectedYear}
+          .rangeMode=${this.rangeMode}
           .spaces=${this.getUniqueSpaces()}
           .selectedSpaceId=${this.selectedSpaceId}
           .modelMetrics=${this.modelMetrics}

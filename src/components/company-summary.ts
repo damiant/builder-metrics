@@ -4,6 +4,7 @@ import "./metrics-charts";
 import "./selected-company-card";
 import "./date-range-selector";
 import "./space-selector";
+import type { RangeMode } from "../lib/date-range";
 
 export class CompanySummary extends LitElement {
   static properties = {
@@ -12,6 +13,7 @@ export class CompanySummary extends LitElement {
     metricsError: { attribute: false },
     selectedMonth: { type: Number, attribute: false },
     selectedYear: { type: Number, attribute: false },
+    rangeMode: { attribute: false },
     showEmails: { type: Boolean, attribute: false },
     spaces: { attribute: false },
     selectedSpaceId: { attribute: false },
@@ -36,6 +38,7 @@ export class CompanySummary extends LitElement {
   declare metricsError: string | null;
   declare selectedMonth: number;
   declare selectedYear: number;
+  declare rangeMode: RangeMode;
   declare showEmails: boolean;
   declare spaces: Array<{ id: string; name: string }>;
   declare selectedSpaceId: string;
@@ -109,6 +112,7 @@ export class CompanySummary extends LitElement {
   constructor() {
     super();
     this.company = null;
+    this.rangeMode = "month";
     this.metricsData = null;
     this.metricsError = null;
     this.spaces = [];
@@ -133,7 +137,9 @@ export class CompanySummary extends LitElement {
     return this;
   }
 
-  private handleDateChange = (event: CustomEvent<{ month: number; year: number }>) => {
+  private handleDateChange = (
+    event: CustomEvent<{ month: number; year: number; rangeMode: RangeMode }>,
+  ) => {
     console.log("company-summary received date-change event:", event.detail);
     this.dispatchEvent(
       new CustomEvent("date-change", {
@@ -356,6 +362,7 @@ export class CompanySummary extends LitElement {
               .company=${this.company}
               .selectedMonth=${this.selectedMonth}
               .selectedYear=${this.selectedYear}
+              .rangeMode=${this.rangeMode}
               .sessionTableData=${this.sessionTableData}
               .userSessionData=${this.userSessionData}
               .showEmails=${this.showEmails}
@@ -374,6 +381,7 @@ export class CompanySummary extends LitElement {
           .metricsData=${this.metricsData}
           .selectedMonth=${this.selectedMonth}
           .selectedYear=${this.selectedYear}
+          .rangeMode=${this.rangeMode}
           .spaces=${this.spaces}
           .selectedSpaceId=${this.selectedSpaceId}
           @date-change=${this.handleDateChange}
@@ -411,6 +419,7 @@ export class CompanySummary extends LitElement {
                   .company=${this.company}
                   .selectedMonth=${this.selectedMonth}
                   .selectedYear=${this.selectedYear}
+                  .rangeMode=${this.rangeMode}
                   .modelMetrics=${this.modelMetrics}
                   .projectMetrics=${this.projectMetrics}
                   .featureMetrics=${this.featureMetrics}
